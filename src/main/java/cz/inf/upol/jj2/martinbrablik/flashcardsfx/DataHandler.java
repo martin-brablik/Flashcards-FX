@@ -16,6 +16,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -27,9 +28,11 @@ import cz.inf.upol.jj2.martinbrablik.flashcardsfx.oredering.Order;
 
 public class DataHandler {
 	
+	private static String dataPath = SystemUtils.IS_OS_WINDOWS ? System.getenv("appdata") + "/FlashcardsFX/" : System.getenv("HOME") + "/.flashcardsfx/";
+	
 	public static void deleteCard(Card card) {
 		try {
-			File cardFile = new File("data/" + card.getDeck().getId() + "/" + card.getId() + ".xml");
+			File cardFile = new File(dataPath + card.getDeck().getId() + "/" + card.getId() + ".xml");
 			cardFile.delete();
 		}
 		catch(SecurityException e) {
@@ -38,14 +41,14 @@ public class DataHandler {
 	}
 	
 	public static void deleteDeck(Deck deck) {
-		File dataDirectory = new File("data/");
+		File dataDirectory = new File(dataPath);
 		try {
 			for(File file : dataDirectory.listFiles()) {
 				if(file.getName().equals(deck.getId() + ".xml")) {
 					file.delete();
 				}
 				if(file.getName().equals(Integer.toString(deck.getId())) && file.isDirectory()) {
-					File deckDataDirectory = new File("data/" + file.getName());
+					File deckDataDirectory = new File(dataPath + file.getName());
 					for(File cardFile : deckDataDirectory.listFiles())
 						cardFile.delete();
 					file.delete();
@@ -62,7 +65,7 @@ public class DataHandler {
 	}
 	
 	private static void loadDecks() {
-		File dataDirectory = new File("data/");
+		File dataDirectory = new File(dataPath);
 		if(!dataDirectory.exists())
 			return;
 		try {
@@ -109,7 +112,7 @@ public class DataHandler {
 	}
 	
 	private static void loadCards(Deck deck) {
-		File cardsDirectory = new File("data/" + deck.getId());
+		File cardsDirectory = new File(dataPath + deck.getId());
 		try {
 			for(File file : cardsDirectory.listFiles()) {
 				if(file.isFile()) {
@@ -151,12 +154,12 @@ public class DataHandler {
 	
 	public static void saveCard(Card card) {
 		try {
-			if(Files.notExists(Path.of("data")))
-				Files.createDirectory(Path.of("data"));
-			Path deckFilePath = Path.of("data/", Integer.toString(card.getDeck().getId()) + ".xml");
+			if(Files.notExists(Path.of(dataPath)))
+				Files.createDirectory(Path.of(dataPath));
+			Path deckFilePath = Path.of(dataPath, Integer.toString(card.getDeck().getId()) + ".xml");
 			if(!Files.notExists(deckFilePath))
 				saveDeck(card.getDeck());
-			Path cardFilePath = Path.of("data/", Integer.toString(card.getDeck().getId()), card.getId() + ".xml");
+			Path cardFilePath = Path.of(dataPath, Integer.toString(card.getDeck().getId()), card.getId() + ".xml");
 			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			Document doc = documentBuilder.newDocument();
@@ -182,6 +185,7 @@ public class DataHandler {
 			StreamResult result = new StreamResult(fos);
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			transformer.transform(source, result);
+			fos.close();
 		}
 		catch(IOException | ParserConfigurationException | TransformerException e) {
 			e.printStackTrace();
@@ -189,7 +193,7 @@ public class DataHandler {
 	}
 	
 	public static void updateDeck(int deckId, Deck newDeck) {
-		File dataDirectory = new File("data/");
+		File dataDirectory = new File(dataPath);
 		try {
 			for(File file : dataDirectory.listFiles()) {
 				if(file.isFile() && file.getName().equals(Integer.toString(deckId) + ".xml")) {
@@ -232,9 +236,9 @@ public class DataHandler {
 	
 	private static void createDirectory(Deck deck) {
 		try {
-			if(Files.notExists(Path.of("data")))
-				Files.createDirectory(Path.of("data"));
-			Path deckDirPath = Path.of("data/", Integer.toString(deck.getId()));
+			if(Files.notExists(Path.of(dataPath)))
+				Files.createDirectory(Path.of(dataPath));
+			Path deckDirPath = Path.of(dataPath, Integer.toString(deck.getId()));
 			if(Files.notExists(deckDirPath))
 				Files.createDirectory(deckDirPath);
 		}
@@ -244,9 +248,9 @@ public class DataHandler {
 	}
 	private static void createDeckFile(Deck deck) {
 		try {
-			if(Files.notExists(Path.of("data")))
-				Files.createDirectory(Path.of("data"));
-			Path deckFilePath = Path.of("data/", deck.getId() + ".xml");
+			if(Files.notExists(Path.of(dataPath)))
+				Files.createDirectory(Path.of(dataPath));
+			Path deckFilePath = Path.of(dataPath, deck.getId() + ".xml");
 			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			Document doc = documentBuilder.newDocument();
@@ -272,6 +276,7 @@ public class DataHandler {
 			StreamResult result = new StreamResult(fos);
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			transformer.transform(source, result);
+			fos.close();
 		}
 		catch(IOException | ParserConfigurationException | TransformerException e) {
 			e.printStackTrace();

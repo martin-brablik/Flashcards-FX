@@ -105,6 +105,7 @@ public class DeckViewController extends Controller {
 		createStage.setTitle("Flashcards FX - Add New Card");	
 		cardEditController = loader.getController();
 		cardEditController.setPrimaryStage(createStage);
+		cardEditController.selectDeck(deck);
 		Scene scene = new Scene(root, 400, 200);
 		createStage.setScene(scene);
 		createStage.show();
